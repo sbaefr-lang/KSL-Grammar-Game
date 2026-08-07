@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>서울대 한국어 1B 14과 · 형용사+명사 게임</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#f0f4f8;font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;padding:1rem}
+.wrap{max-width:740px;margin:0 auto}
+/* 헤더 */
+.header{background:linear-gradient(135deg,#1a5276,#2e86c1);border-radius:14px;padding:1.2rem 1.5rem;margin-bottom:1rem;color:#fff;text-align:center}
+.header h1{font-size:19px;font-weight:700;margin-bottom:3px}
+.header p{font-size:12px;opacity:.85}
+/* 메인 탭 */
+.mtabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:1rem}
+.mtab{padding:8px 4px;border-radius:9px;border:1.5px solid #d1d5db;text-align:center;cursor:pointer;background:#fff;font-size:12px;font-weight:600;color:#374151;transition:all .15s}
+.mtab.on{background:#1a5276;border-color:#1a5276;color:#fff}
+.mpanel{display:none}
+.mpanel.show{display:block;animation:fi .2s ease}
+@keyframes fi{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+/* 공통 카드 */
+.card{background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:1.1rem 1.2rem;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.card-title{font-size:15px;font-weight:700;color:#1a5276;margin-bottom:8px;display:flex;align-items:center;gap:7px}
+.card-desc{font-size:13px;color:#4b5563;line-height:1.75;margin-bottom:10px}
+/* 형태 규칙 표 */
+.rtable{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:10px}
+.rtable th{background:#1a5276;color:#fff;padding:7px 10px;font-weight:700;text-align:center}
+.rtable td{padding:7px 10px;border:1px solid #e5e7eb;color:#111827;text-align:center;line-height:1.6}
+.rtable tr:nth-child(even) td{background:#f8fafc}
+.hl{color:#1d4ed8;font-weight:700}
+.hl2{color:#b91c1c;font-weight:700}
+.hl3{color:#15803d;font-weight:700}
+/* 어휘 그리드 */
+.word-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:10px}
+.word-card{background:#f0f7ff;border:1px solid #bfdbfe;border-radius:9px;padding:.65rem .8rem;text-align:center}
+.word-ko{font-size:15px;font-weight:700;color:#1e3a8a}
+.word-mod{font-size:13px;color:#2563eb;margin-top:2px}
+.word-en{font-size:11px;color:#6b7280;margin-top:2px}
+/* 노트 */
+.note{background:#fffbeb;border:1px solid #fbbf24;border-radius:8px;padding:.75rem 1rem;font-size:13px;color:#78350f;margin-top:8px;line-height:1.7}
+.note2{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:.75rem 1rem;font-size:13px;color:#14532d;margin-top:8px;line-height:1.7}
+/* ── 게임 1: 빙고 ── */
+.bingo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}
+.bcell{aspect-ratio:1;background:#f0f7ff;border:2px solid #bfdbfe;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#1e3a8a;cursor:pointer;text-align:center;padding:4px;line-height:1.3;transition:all .15s;user-select:none}
+.bcell.hit{background:#1a5276;border-color:#1a5276;color:#fff}
+.bcell.free{background:#dbeafe;border-color:#93c5fd;color:#1e3a8a;font-size:11px}
+.bingo-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.btn{padding:7px 16px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn-blue{background:#1a5276;color:#fff}
+.btn-blue:hover{background:#154460}
+.btn-gray{background:#e5e7eb;color:#374151}
+.btn-gray:hover{background:#d1d5db}
+.bingo-msg{font-size:14px;font-weight:700;color:#1a5276;min-height:22px;margin-bottom:6px}
+.caller-box{background:#f8fafc;border:1px solid #e5e7eb;border-radius:9px;padding:.75rem 1rem;margin-bottom:10px}
+.caller-current{font-size:17px;font-weight:700;color:#1d4ed8;margin-bottom:4px}
+.caller-list{font-size:11px;color:#9ca3af;line-height:1.6}
+/* ── 게임 2: 매칭 ── */
+.match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.match-col-title{font-size:12px;font-weight:700;color:#6b7280;margin-bottom:6px;text-align:center}
+.match-col{display:flex;flex-direction:column;gap:6px}
+.mcard{padding:9px 12px;border-radius:9px;border:2px solid #e5e7eb;background:#fff;font-size:13px;font-weight:600;cursor:pointer;text-align:center;transition:all .15s;color:#111827;user-select:none}
+.mcard:hover{border-color:#93c5fd;background:#f0f7ff}
+.mcard.sel{border-color:#1a5276;background:#dbeafe;color:#1e3a8a}
+.mcard.matched{border-color:#86efac;background:#f0fdf4;color:#15803d;cursor:default}
+.mcard.wrong{border-color:#fca5a5;background:#fef2f2;animation:shake .3s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.match-score{font-size:13px;font-weight:700;color:#1a5276;margin-bottom:8px}
+/* ── 게임 3: 스피드 퀴즈 ── */
+.quiz-box{background:#f0f7ff;border:2px solid #bfdbfe;border-radius:12px;padding:1.2rem;text-align:center;margin-bottom:12px}
+.quiz-q{font-size:20px;font-weight:700;color:#1e3a8a;margin-bottom:8px;line-height:1.4}
+.quiz-hint{font-size:13px;color:#6b7280;margin-bottom:12px}
+.quiz-choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.qbtn{padding:10px;border-radius:9px;border:2px solid #e5e7eb;background:#fff;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;color:#111827;font-family:inherit}
+.qbtn:hover{border-color:#93c5fd;background:#f0f7ff}
+.qbtn.correct{background:#f0fdf4;border-color:#86efac;color:#15803d}
+.qbtn.wrong{background:#fef2f2;border-color:#fca5a5;color:#b91c1c}
+.quiz-result{font-size:14px;font-weight:700;min-height:22px;margin-bottom:6px}
+.quiz-progress{font-size:12px;color:#6b7280;margin-bottom:6px}
+.score-bar{background:#e5e7eb;border-radius:99px;height:6px;margin-bottom:10px}
+.score-fill{background:#1a5276;border-radius:99px;height:6px;transition:width .3s}
+/* ── 게임 4: 문장 만들기 ── */
+.build-target{background:#f0f7ff;border:2px solid #bfdbfe;border-radius:10px;padding:.85rem 1rem;font-size:14px;color:#1e3a8a;font-weight:600;margin-bottom:10px;line-height:1.6;min-height:44px}
+.build-slots{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;min-height:44px;padding:8px;background:#f9fafb;border:1.5px dashed #d1d5db;border-radius:9px}
+.build-slot{padding:6px 12px;background:#1a5276;color:#fff;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer}
+.build-pool{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.build-chip{padding:6px 12px;background:#dbeafe;color:#1e3a8a;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid #93c5fd}
+.build-chip:hover{background:#bfdbfe}
+.build-chip.used{opacity:.3;cursor:not-allowed}
+.build-feedback{font-size:14px;font-weight:700;min-height:22px;margin-bottom:6px;text-align:center}
+/* ── 워드월 ── */
+.ww-grid{display:grid;grid-template-columns:1fr;gap:8px}
+.ww-item{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:.85rem 1rem;display:flex;align-items:flex-start;gap:10px}
+.ww-num{min-width:24px;height:24px;background:#1a5276;color:#fff;border-radius:50%;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.ww-ko{font-size:14px;font-weight:600;color:#111827;flex:1;line-height:1.7}
+.ww-ko .adj{color:#1d4ed8}
+.ww-ko .noun{color:#b91c1c}
+.ww-en{font-size:11px;color:#6b7280;margin-top:2px}
+/* 반응형 */
+@media(max-width:500px){
+  .mtabs{grid-template-columns:repeat(3,1fr)}
+  .bingo-grid{grid-template-columns:repeat(4,1fr)}
+  .quiz-choices{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1>🛍️ 14과 · 형용사 + 명사 수식</h1>
+    <p>서울대 한국어 1B | "이 옷을 입어 보세요" | 게임 4종 + 워드월 12문장</p>
+  </div>
+
+  <div class="mtabs">
+    <div class="mtab on"  onclick="switchM(0)">📖 문법 규칙</div>
+    <div class="mtab"     onclick="switchM(1)">🎯 빙고 게임</div>
+    <div class="mtab"     onclick="switchM(2)">🔗 매칭 게임</div>
+    <div class="mtab"     onclick="switchM(3)">⚡ 스피드 퀴즈</div>
+    <div class="mtab"     onclick="switchM(4)">🧩 문장 만들기</div>
+  </div>
+
+  <!-- ═══════════════ 패널 0: 문법 규칙 + 워드월 ═══════════════ -->
+  <div class="mpanel show" id="mp0">
+    <div class="card">
+      <div class="card-title">📌 형용사 + 명사 수식 규칙</div>
+      <div class="card-desc">형용사가 명사를 꾸밀 때 형태가 바뀌어요. 형용사를 <strong>관형형</strong>으로 바꿔야 해요!</div>
+      <table class="rtable">
+        <tr><th>조건</th><th>형태</th><th>예시</th></tr>
+        <tr><td>받침 없는 형용사</td><td>어간 + <span class="hl">-ㄴ</span></td><td>크다 → 큰 / 싸다 → 싼 / 예쁘다 → 예쁜</td></tr>
+        <tr><td>받침 있는 형용사</td><td>어간 + <span class="hl">-은</span></td><td>작다 → 작은 / 좋다 → 좋은 / 넓다 → 넓은</td></tr>
+        <tr><td>ㅂ 불규칙</td><td>ㅂ → 우 + <span class="hl">-ㄴ</span></td><td>가볍다 → 가벼운 / 어둡다 → 어두운</td></tr>
+        <tr><td>ㅡ 탈락</td><td>ㅡ 탈락 + <span class="hl">-ㄴ</span></td><td>예쁘다 → 예쁜 / 크다 → 큰</td></tr>
+      </table>
+      <div class="note2">✅ 동사는 <strong>-는</strong>을 붙여요. 형용사는 <strong>-(으)ㄴ</strong>을 붙여요.<br>예) 먹는 음식 (동사) vs 맛있는 음식 (형용사)</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">👗 14과 핵심 어휘 — 형용사 관형형</div>
+      <div class="word-grid">
+        <div class="word-card"><div class="word-ko">크다</div><div class="word-mod">→ <span class="hl">큰</span></div><div class="word-en">big → big (N)</div></div>
+        <div class="word-card"><div class="word-ko">작다</div><div class="word-mod">→ <span class="hl">작은</span></div><div class="word-en">small</div></div>
+        <div class="word-card"><div class="word-ko">길다</div><div class="word-mod">→ <span class="hl">긴</span></div><div class="word-en">long</div></div>
+        <div class="word-card"><div class="word-ko">짧다</div><div class="word-mod">→ <span class="hl">짧은</span></div><div class="word-en">short</div></div>
+        <div class="word-card"><div class="word-ko">비싸다</div><div class="word-mod">→ <span class="hl">비싼</span></div><div class="word-en">expensive</div></div>
+        <div class="word-card"><div class="word-ko">싸다</div><div class="word-mod">→ <span class="hl">싼</span></div><div class="word-en">cheap</div></div>
+        <div class="word-card"><div class="word-ko">예쁘다</div><div class="word-mod">→ <span class="hl">예쁜</span></div><div class="word-en">pretty</div></div>
+        <div class="word-card"><div class="word-ko">편하다</div><div class="word-mod">→ <span class="hl">편한</span></div><div class="word-en">comfortable</div></div>
+        <div class="word-card"><div class="word-ko">가볍다</div><div class="word-mod">→ <span class="hl">가벼운</span></div><div class="word-en">light (weight)</div></div>
+        <div class="word-card"><div class="word-ko">두껍다</div><div class="word-mod">→ <span class="hl">두꺼운</span></div><div class="word-en">thick</div></div>
+        <div class="word-card"><div class="word-ko">얇다</div><div class="word-mod">→ <span class="hl">얇은</span></div><div class="word-en">thin</div></div>
+        <div class="word-card"><div class="word-ko">넓다</div><div class="word-mod">→ <span class="hl">넓은</span></div><div class="word-en">wide / roomy</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📋 워드월 문장 12개 — 형용사 + 명사</div>
+      <div class="ww-grid" id="ww-list"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 패널 1: 빙고 ═══════════════ -->
+  <div class="mpanel" id="mp1">
+    <div class="card">
+      <div class="card-title">🎯 빙고 게임</div>
+      <div class="card-desc">선생님이 형용사 기본형을 부르면 관형형(수식형)을 찾아서 클릭하세요! 가로·세로·대각선 한 줄을 완성하면 빙고!</div>
+      <div class="bingo-btns">
+        <button class="btn btn-blue" onclick="callNext()">📢 다음 단어 부르기</button>
+        <button class="btn btn-gray" onclick="resetBingo()">🔄 다시 시작</button>
+      </div>
+      <div class="caller-box">
+        <div class="caller-current" id="caller-cur">▶ 버튼을 눌러 게임 시작!</div>
+        <div class="caller-list" id="caller-list">불린 단어: —</div>
+      </div>
+      <div class="bingo-msg" id="bingo-msg"></div>
+      <div class="bingo-grid" id="bingo-grid"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 패널 2: 매칭 ═══════════════ -->
+  <div class="mpanel" id="mp2">
+    <div class="card">
+      <div class="card-title">🔗 매칭 게임 — 기본형 ↔ 관형형</div>
+      <div class="card-desc">왼쪽의 형용사 기본형과 오른쪽의 관형형을 짝지어 보세요. 왼쪽 → 오른쪽 순서로 클릭하세요!</div>
+      <div class="match-score" id="match-score">맞은 개수: 0 / 8</div>
+      <div class="match-wrap">
+        <div>
+          <div class="match-col-title">기본형</div>
+          <div class="match-col" id="match-left"></div>
+        </div>
+        <div>
+          <div class="match-col-title">관형형 (명사 수식형)</div>
+          <div class="match-col" id="match-right"></div>
+        </div>
+      </div>
+      <button class="btn btn-gray" onclick="resetMatch()">🔄 다시 시작</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 패널 3: 스피드 퀴즈 ═══════════════ -->
+  <div class="mpanel" id="mp3">
+    <div class="card">
+      <div class="card-title">⚡ 스피드 퀴즈 — 관형형 고르기</div>
+      <div class="card-desc">형용사의 올바른 관형형(명사 수식형)을 고르세요!</div>
+      <div class="quiz-progress" id="qprogress">1 / 10</div>
+      <div class="score-bar"><div class="score-fill" id="qbar" style="width:0%"></div></div>
+      <div class="quiz-box">
+        <div class="quiz-q" id="q-word">—</div>
+        <div class="quiz-hint" id="q-hint">이 형용사의 관형형은?</div>
+      </div>
+      <div class="quiz-choices" id="q-choices"></div>
+      <div class="quiz-result" id="q-result"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-blue" id="q-next" onclick="nextQ()" style="display:none">다음 문제 →</button>
+        <button class="btn btn-gray" onclick="resetQuiz()">🔄 다시 시작</button>
+      </div>
+      <div id="q-final" style="display:none;margin-top:10px;font-size:15px;font-weight:700;color:#1a5276;text-align:center"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 패널 4: 문장 만들기 ═══════════════ -->
+  <div class="mpanel" id="mp4">
+    <div class="card">
+      <div class="card-title">🧩 문장 만들기 — 단어 카드 조각 맞추기</div>
+      <div class="card-desc">단어 카드를 클릭해서 올바른 순서로 문장을 완성하세요!</div>
+      <div id="build-progress" style="font-size:12px;color:#6b7280;margin-bottom:8px">문장 1 / 6</div>
+      <div class="build-target" id="build-target"></div>
+      <p style="font-size:12px;color:#6b7280;margin-bottom:6px">단어를 클릭해서 순서대로 놓으세요 ↓</p>
+      <div class="build-slots" id="build-slots"></div>
+      <div class="build-pool" id="build-pool"></div>
+      <div class="build-feedback" id="build-fb"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-blue" id="build-check" onclick="checkBuild()">✅ 확인</button>
+        <button class="btn btn-gray" onclick="clearBuild()">🗑️ 지우기</button>
+        <button class="btn btn-gray" id="build-next" onclick="nextBuild()" style="display:none">다음 문장 →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════ 공통 데이터 ═══════════ */
+const WORDS = [
+  {base:'크다',  mod:'큰',    en:'big'},
+  {base:'작다',  mod:'작은',  en:'small'},
+  {base:'길다',  mod:'긴',    en:'long'},
+  {base:'짧다',  mod:'짧은',  en:'short'},
+  {base:'비싸다',mod:'비싼',  en:'expensive'},
+  {base:'싸다',  mod:'싼',    en:'cheap'},
+  {base:'예쁘다',mod:'예쁜',  en:'pretty'},
+  {base:'편하다',mod:'편한',  en:'comfortable'},
+  {base:'가볍다',mod:'가벼운',en:'light'},
+  {base:'두껍다',mod:'두꺼운',en:'thick'},
+  {base:'얇다',  mod:'얇은',  en:'thin'},
+  {base:'넓다',  mod:'넓은',  en:'wide'},
+  {base:'좋다',  mod:'좋은',  en:'good'},
+  {base:'하얗다',mod:'하얀',  en:'white'},
+  {base:'까맣다',mod:'까만',  en:'black'},
+  {base:'빨갛다',mod:'빨간',  en:'red'},
+];
+
+const WORDWALL = [
+  {ko:'<span class="adj">큰</span> <span class="noun">가방</span>을 샀어요.', en:'I bought a big bag.'},
+  {ko:'이 <span class="adj">예쁜</span> <span class="noun">옷</span>은 얼마예요?', en:'How much is this pretty outfit?'},
+  {ko:'<span class="adj">편한</span> <span class="noun">신발</span>을 신고 싶어요.', en:'I want to wear comfortable shoes.'},
+  {ko:'<span class="adj">긴</span> <span class="noun">치마</span>를 입어 보세요.', en:'Please try on the long skirt.'},
+  {ko:'저는 <span class="adj">싼</span> <span class="noun">옷</span>을 좋아해요.', en:"I like cheap clothes."},
+  {ko:'<span class="adj">가벼운</span> <span class="noun">가방</span>이 필요해요.', en:'I need a light bag.'},
+  {ko:'이 <span class="adj">비싼</span> <span class="noun">코트</span>는 너무 예뻐요.', en:'This expensive coat is so pretty.'},
+  {ko:'<span class="adj">짧은</span> <span class="noun">바지</span>가 있어요?', en:'Do you have short pants?'},
+  {ko:'<span class="adj">두꺼운</span> <span class="noun">양말</span>을 사고 싶어요.', en:'I want to buy thick socks.'},
+  {ko:'<span class="adj">하얀</span> <span class="noun">티셔츠</span>가 깨끗해 보여요.', en:'The white T-shirt looks clean.'},
+  {ko:'<span class="adj">넓은</span> <span class="noun">방</span>에서 공부해요.', en:'I study in a wide room.'},
+  {ko:'<span class="adj">좋은</span> <span class="noun">선물</span>을 받았어요.', en:'I received a nice gift.'},
+];
+
+/* ── 탭 전환 ── */
+function switchM(i){
+  document.querySelectorAll('.mtab').forEach((t,j)=>t.classList.toggle('on',j===i));
+  document.querySelectorAll('.mpanel').forEach((p,j)=>p.classList.toggle('show',j===i));
+}
+
+/* ── 워드월 렌더 ── */
+const wwEl = document.getElementById('ww-list');
+WORDWALL.forEach((w,i)=>{
+  wwEl.innerHTML += `<div class="ww-item">
+    <div class="ww-num">${i+1}</div>
+    <div><div class="ww-ko">${w.ko}</div><div class="ww-en">${w.en}</div></div>
+  </div>`;
+});
+
+/* ══════════════════════════════
+   게임 1: 빙고
+══════════════════════════════ */
+const BINGO_WORDS = WORDS.slice(0,15);
+let bingoCells=[], calledMods=[], calledBases=[];
+
+function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
+
+function buildBingo(){
+  const grid = document.getElementById('bingo-grid');
+  const pool = shuffle(BINGO_WORDS).slice(0,15);
+  // 16칸: 0~15, 7번이 FREE
+  const positions = [...Array(16).keys()];
+  bingoCells = [];
+  grid.innerHTML='';
+  let pi=0;
+  for(let i=0;i<16;i++){
+    const cell=document.createElement('div');
+    cell.className='bcell';
+    if(i===7){
+      cell.classList.add('free','hit');
+      cell.textContent='FREE';
+      cell.dataset.mod='FREE';
+    } else {
+      const w=pool[pi++];
+      cell.textContent=w.mod;
+      cell.dataset.mod=w.mod;
+      cell.dataset.base=w.base;
+      cell.onclick=()=>markCell(cell);
+    }
+    grid.appendChild(cell);
+    bingoCells.push(cell);
+  }
+  calledMods=['FREE']; calledBases=[];
+  document.getElementById('caller-cur').textContent='▶ 버튼을 눌러 게임 시작!';
+  document.getElementById('caller-list').textContent='불린 단어: —';
+  document.getElementById('bingo-msg').textContent='';
+}
+
+function markCell(cell){
+  if(calledMods.includes(cell.dataset.mod)){
+    cell.classList.toggle('hit');
+    checkBingoWin();
+  }
+}
+
+function callNext(){
+  const remaining = BINGO_WORDS.filter(w=>!calledBases.includes(w.base));
+  if(!remaining.length){document.getElementById('caller-cur').textContent='모든 단어를 불렀어요!';return;}
+  const w=remaining[Math.floor(Math.random()*remaining.length)];
+  calledMods.push(w.mod); calledBases.push(w.base);
+  document.getElementById('caller-cur').textContent=`📢 "${w.base}"  →  관형형은?`;
+  document.getElementById('caller-list').textContent='불린 단어: '+calledBases.join(', ');
+}
+
+function checkBingoWin(){
+  const h=bingoCells.map(c=>c.classList.contains('hit'));
+  const lines=[[0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15],
+               [0,4,8,12],[1,5,9,13],[2,6,10,14],[3,7,11,15],
+               [0,5,10,15],[3,6,9,12]];
+  if(lines.some(l=>l.every(i=>h[i])))
+    document.getElementById('bingo-msg').textContent='🎉 빙고! 축하해요!';
+}
+
+function resetBingo(){buildBingo();}
+buildBingo();
+
+/* ══════════════════════════════
+   게임 2: 매칭
+══════════════════════════════ */
+const MATCH_SET=[
+  {base:'크다',mod:'큰'},{base:'작다',mod:'작은'},
+  {base:'길다',mod:'긴'},{base:'비싸다',mod:'비싼'},
+  {base:'예쁘다',mod:'예쁜'},{base:'편하다',mod:'편한'},
+  {base:'가볍다',mod:'가벼운'},{base:'두껍다',mod:'두꺼운'},
+];
+let mSelLeft=null, mSelRight=null, mScore=0;
+
+function buildMatch(){
+  mSelLeft=null; mSelRight=null; mScore=0;
+  document.getElementById('match-score').textContent='맞은 개수: 0 / 8';
+  const sl=document.getElementById('match-left');
+  const sr=document.getElementById('match-right');
+  const bases=shuffle(MATCH_SET.map(w=>w.base));
+  const mods=shuffle(MATCH_SET.map(w=>w.mod));
+  sl.innerHTML=''; sr.innerHTML='';
+  bases.forEach(b=>{
+    const d=document.createElement('div');
+    d.className='mcard'; d.textContent=b; d.dataset.val=b; d.dataset.side='L';
+    d.onclick=()=>selectMatch(d,'L');
+    sl.appendChild(d);
+  });
+  mods.forEach(m=>{
+    const d=document.createElement('div');
+    d.className='mcard'; d.textContent=m; d.dataset.val=m; d.dataset.side='R';
+    d.onclick=()=>selectMatch(d,'R');
+    sr.appendChild(d);
+  });
+}
+
+function selectMatch(el,side){
+  if(el.classList.contains('matched')) return;
+  if(side==='L'){
+    if(mSelLeft) mSelLeft.classList.remove('sel');
+    mSelLeft=el; el.classList.add('sel');
+  } else {
+    if(mSelRight) mSelRight.classList.remove('sel');
+    mSelRight=el; el.classList.add('sel');
+  }
+  if(mSelLeft && mSelRight){
+    const pair=MATCH_SET.find(w=>w.base===mSelLeft.dataset.val);
+    if(pair && pair.mod===mSelRight.dataset.val){
+      mSelLeft.classList.replace('sel','matched');
+      mSelRight.classList.replace('sel','matched');
+      mScore++;
+      document.getElementById('match-score').textContent=`맞은 개수: ${mScore} / 8`;
+      if(mScore===8) setTimeout(()=>alert('🎉 모두 맞혔어요! 훌륭해요!'),200);
+    } else {
+      mSelLeft.classList.add('wrong'); mSelRight.classList.add('wrong');
+      setTimeout(()=>{
+        mSelLeft.classList.remove('sel','wrong');
+        mSelRight.classList.remove('sel','wrong');
+      },500);
+    }
+    mSelLeft=null; mSelRight=null;
+  }
+}
+
+function resetMatch(){buildMatch();}
+buildMatch();
+
+/* ══════════════════════════════
+   게임 3: 스피드 퀴즈
+══════════════════════════════ */
+const QUIZ_SET=[
+  {q:'크다',a:'큰',wrong:['크는','크은','큰은']},
+  {q:'작다',a:'작은',wrong:['작는','작ㄴ','자근']},
+  {q:'길다',a:'긴',wrong:['길은','길는','긴은']},
+  {q:'비싸다',a:'비싼',wrong:['비싸는','비싼은','비싸은']},
+  {q:'예쁘다',a:'예쁜',wrong:['예쁘는','예쁜은','예쁘은']},
+  {q:'편하다',a:'편한',wrong:['편하는','편한은','편하은']},
+  {q:'가볍다',a:'가벼운',wrong:['가볍은','가볍는','가벼운은']},
+  {q:'두껍다',a:'두꺼운',wrong:['두껍은','두껍는','두꺼운은']},
+  {q:'얇다',a:'얇은',wrong:['얇는','얄은','얇은은']},
+  {q:'좋다',a:'좋은',wrong:['좋는','좋ㄴ','조은']},
+];
+let qIdx=0, qCorrect=0, qShuffle=[];
+
+function buildQuiz(){
+  qIdx=0; qCorrect=0;
+  qShuffle=shuffle(QUIZ_SET);
+  document.getElementById('q-final').style.display='none';
+  document.getElementById('q-next').style.display='none';
+  renderQ();
+}
+
+function renderQ(){
+  if(qIdx>=qShuffle.length){
+    document.getElementById('q-final').style.display='block';
+    document.getElementById('q-final').textContent=
+      `최종 점수: ${qCorrect} / ${qShuffle.length} 🎉`;
+    document.getElementById('q-word').textContent='완료!';
+    document.getElementById('q-choices').innerHTML='';
+    document.getElementById('qbar').style.width='100%';
+    return;
+  }
+  const q=qShuffle[qIdx];
+  document.getElementById('qprogress').textContent=`${qIdx+1} / ${qShuffle.length}`;
+  document.getElementById('qbar').style.width=`${(qIdx/qShuffle.length)*100}%`;
+  document.getElementById('q-word').textContent=q.q;
+  document.getElementById('q-hint').textContent='이 형용사의 관형형(명사 수식형)은?';
+  document.getElementById('q-result').textContent='';
+  document.getElementById('q-next').style.display='none';
+  const opts=shuffle([q.a,...q.wrong.slice(0,3)]);
+  const cc=document.getElementById('q-choices');
+  cc.innerHTML='';
+  opts.forEach(o=>{
+    const b=document.createElement('button');
+    b.className='qbtn'; b.textContent=o;
+    b.onclick=()=>answerQ(b,o,q.a);
+    cc.appendChild(b);
+  });
+}
+
+function answerQ(el,chosen,correct){
+  document.querySelectorAll('.qbtn').forEach(b=>b.onclick=null);
+  if(chosen===correct){
+    el.classList.add('correct');
+    document.getElementById('q-result').innerHTML='<span style="color:#15803d">✅ 정답이에요!</span>';
+    qCorrect++;
+  } else {
+    el.classList.add('wrong');
+    document.querySelectorAll('.qbtn').forEach(b=>{if(b.textContent===correct)b.classList.add('correct');});
+    document.getElementById('q-result').innerHTML=`<span style="color:#b91c1c">❌ 정답: ${correct}</span>`;
+  }
+  document.getElementById('q-next').style.display='inline-block';
+}
+
+function nextQ(){qIdx++;renderQ();}
+function resetQuiz(){buildQuiz();}
+buildQuiz();
+
+/* ══════════════════════════════
+   게임 4: 문장 만들기
+══════════════════════════════ */
+const BUILD_SET=[
+  {words:['큰','가방을','샀어요','저는'],answer:'저는 큰 가방을 샀어요'},
+  {words:['편한','신어','신발을','보세요'],answer:'편한 신발을 신어 보세요'},
+  {words:['이','얼마예요','예쁜','치마가'],answer:'이 예쁜 치마가 얼마예요'},
+  {words:['긴','있어요','바지가','?'],answer:'긴 바지가 있어요 ?'},
+  {words:['가벼운','필요해요','가방이','저는'],answer:'저는 가벼운 가방이 필요해요'},
+  {words:['두꺼운','입었어요','코트를','오늘'],answer:'오늘 두꺼운 코트를 입었어요'},
+];
+let bIdx=0, bSelected=[], bUsed=[];
+
+function buildBuildGame(){
+  bIdx=0; renderBuild();
+}
+
+function renderBuild(){
+  if(bIdx>=BUILD_SET.length){
+    document.getElementById('build-progress').textContent='모든 문장 완성! 🎉';
+    document.getElementById('build-target').textContent='훌륭해요! 모든 문장을 완성했어요!';
+    document.getElementById('build-pool').innerHTML='';
+    document.getElementById('build-slots').innerHTML='';
+    document.getElementById('build-check').style.display='none';
+    document.getElementById('build-next').style.display='none';
+    return;
+  }
+  const s=BUILD_SET[bIdx];
+  bSelected=[]; bUsed=new Array(s.words.length).fill(false);
+  document.getElementById('build-progress').textContent=`문장 ${bIdx+1} / ${BUILD_SET.length}`;
+  document.getElementById('build-target').textContent='💬 단어를 순서대로 클릭해서 문장을 만드세요!';
+  document.getElementById('build-slots').innerHTML='';
+  document.getElementById('build-fb').textContent='';
+  document.getElementById('build-next').style.display='none';
+  document.getElementById('build-check').style.display='inline-block';
+  const pool=document.getElementById('build-pool');
+  pool.innerHTML='';
+  shuffle(s.words).forEach((w,i)=>{
+    const chip=document.createElement('div');
+    chip.className='build-chip'; chip.textContent=w; chip.dataset.idx=i;
+    chip.onclick=()=>addWord(chip,w,i);
+    pool.appendChild(chip);
+  });
+}
+
+function addWord(el,w,i){
+  if(el.classList.contains('used')) return;
+  el.classList.add('used');
+  bSelected.push({w,el});
+  const slot=document.createElement('div');
+  slot.className='build-slot'; slot.textContent=w;
+  slot.onclick=()=>removeWord(slot,el);
+  document.getElementById('build-slots').appendChild(slot);
+}
+
+function removeWord(slot,orig){
+  orig.classList.remove('used');
+  bSelected=bSelected.filter(s=>s.el!==orig);
+  slot.remove();
+}
+
+function clearBuild(){
+  document.querySelectorAll('.build-chip').forEach(c=>c.classList.remove('used'));
+  bSelected=[];
+  document.getElementById('build-slots').innerHTML='';
+  document.getElementById('build-fb').textContent='';
+}
+
+function checkBuild(){
+  const ans=bSelected.map(s=>s.w).join(' ');
+  const correct=BUILD_SET[bIdx].answer;
+  if(ans===correct){
+    document.getElementById('build-fb').innerHTML='<span style="color:#15803d">✅ 정답이에요!</span>';
+    document.getElementById('build-next').style.display='inline-block';
+  } else {
+    document.getElementById('build-fb').innerHTML=`<span style="color:#b91c1c">❌ 다시 해 보세요!</span>`;
+  }
+}
+
+function nextBuild(){bIdx++;renderBuild();}
+buildBuildGame();
+</script>
+</body>
+</html>
