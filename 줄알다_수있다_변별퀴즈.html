@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>-을 줄 알다 vs -을 수 있다 변별 퀴즈</title>
+<style>
+  :root{
+    --paper:#F7F3EA;
+    --card:#FFFFFF;
+    --ink:#2B3A55;
+    --ink-soft:#5B6B85;
+    --line:#E4DCC8;
+    --purple:#6B5B9A;
+    --purple-bg:#EFEAF7;
+    --teal:#1D7A63;
+    --teal-bg:#E4F3EE;
+    --wrong:#B5493B;
+    --wrong-bg:#FBEAE7;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:24px 16px 60px;
+  }
+  .wrap{width:100%;max-width:480px;}
+  header{text-align:center;margin-bottom:20px;}
+  header h1{font-size:19px;font-weight:700;margin:0 0 4px;line-height:1.4;}
+  header p{font-size:13px;color:var(--ink-soft);margin:0;}
+
+  .dots{display:flex;justify-content:center;gap:6px;margin:18px 0 22px;}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--line);transition:background .2s;}
+  .dot.done{background:var(--ink);}
+  .dot.current{background:var(--purple);}
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:26px 22px;
+    box-shadow:0 2px 10px rgba(43,58,85,0.06);
+  }
+  .qnum{font-size:12px;color:var(--ink-soft);font-weight:600;margin-bottom:8px;}
+  .prompt{font-size:17px;font-weight:600;line-height:1.6;margin-bottom:20px;}
+
+  .hint-btn{
+    display:inline-block;background:none;border:1px solid var(--line);
+    color:var(--ink-soft);font-size:12px;padding:5px 10px;border-radius:20px;
+    margin-bottom:16px;cursor:pointer;
+  }
+  .hint-text{font-size:13px;color:var(--ink-soft);background:var(--paper);
+    border-radius:10px;padding:10px 12px;margin:0 0 16px;display:none;}
+  .hint-text.show{display:block;}
+
+  .opt{
+    display:block;width:100%;text-align:left;
+    background:var(--paper);border:1.5px solid var(--line);
+    border-radius:12px;padding:14px 16px;margin-bottom:10px;
+    font-size:15px;font-weight:500;color:var(--ink);
+    cursor:pointer;transition:all .15s;
+  }
+  .opt:active{transform:scale(0.98);}
+  .opt.correct{background:var(--teal-bg);border-color:var(--teal);color:var(--teal);}
+  .opt.wrong{background:var(--wrong-bg);border-color:var(--wrong);color:var(--wrong);}
+  .opt.disabled{pointer-events:none;}
+  .opt.dim{opacity:0.45;}
+
+  .feedback{margin-top:14px;padding:14px 16px;border-radius:12px;font-size:13.5px;
+    line-height:1.6;display:none;}
+  .feedback.show{display:block;}
+  .feedback.ok{background:var(--teal-bg);color:var(--teal);}
+  .feedback.no{background:var(--wrong-bg);color:var(--wrong);}
+  .feedback b{display:block;margin-bottom:4px;font-size:14px;}
+
+  .next-btn{
+    display:none;width:100%;margin-top:18px;padding:14px;
+    background:var(--ink);color:#fff;border:none;border-radius:12px;
+    font-size:15px;font-weight:600;cursor:pointer;
+  }
+  .next-btn.show{display:block;}
+
+  .result{display:none;text-align:center;padding:20px 0;}
+  .result.show{display:block;}
+  .result .score{font-size:44px;font-weight:800;margin:10px 0 4px;color:var(--purple);}
+  .result .score span{font-size:20px;color:var(--ink-soft);font-weight:600;}
+  .result p{font-size:14px;color:var(--ink-soft);margin:0 0 22px;}
+  .retry-btn{
+    padding:13px 28px;background:var(--purple);color:#fff;border:none;
+    border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;
+  }
+  .legend{display:flex;justify-content:center;gap:16px;margin-top:22px;font-size:12px;color:var(--ink-soft);}
+  .legend span{display:inline-flex;align-items:center;gap:5px;}
+  .legend i{width:9px;height:9px;border-radius:50%;display:inline-block;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>-을 줄 알다 vs -을 수 있다</h1>
+    <p>둘 다 되는 경우와 한쪽만 되는 경우를 함께 구별하는 연습</p>
+  </header>
+
+  <div class="dots" id="dots"></div>
+
+  <div class="card" id="quizCard">
+    <div class="qnum" id="qnum"></div>
+    <div class="prompt" id="prompt"></div>
+    <button class="hint-btn" id="hintBtn" onclick="toggleHint()">힌트 보기</button>
+    <div class="hint-text" id="hintText"></div>
+    <div id="options"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="next-btn" id="nextBtn" onclick="next()">다음 문제</button>
+  </div>
+
+  <div class="card result" id="resultCard">
+    <div class="score" id="scoreText"></div>
+    <p>정답이 하나로만 정해지는 문제라, 틀린 건 개념을 다시 짚어볼 좋은 기회예요.</p>
+    <button class="retry-btn" onclick="restart()">다시 풀기</button>
+  </div>
+</div>
+
+<script>
+const questions = [
+  {
+    prompt: "어제 술을 많이 마셨어요. 오늘 운전을 ______.",
+    options: ["할 수 없어요", "할 줄 몰라요"],
+    correct: 0,
+    hint: "운전하는 방법을 모르는 게 아니라 지금 상태가 문제예요.",
+    explain: "운전하는 방법은 그대로 알고 있고, 음주라는 현재 조건 때문에 불가능한 상황이므로 '수 있다/없다'가 맞아요."
+  },
+  {
+    prompt: "오늘 갑자기 소나기가 내렸어요. 비가 그렇게 올 ______.",
+    options: ["줄 몰랐어요", "수 없었어요"],
+    correct: 0,
+    hint: "미리 예상했는지를 나타내는 표현이에요.",
+    explain: "'비가 올 수 없었어요'는 '비가 내리는 게 불가능했다'는 이상한 뜻이 돼요. 예상하지 못했다는 뜻은 '줄 알다/모르다'만 나타낼 수 있어요."
+  },
+  {
+    prompt: "이 박물관은 사진 촬영이 허용돼요. 사진을 ______.",
+    options: ["찍을 수 있어요", "찍을 줄 알아요"],
+    correct: 0,
+    hint: "카메라 사용법을 아는지 묻는 게 아니에요.",
+    explain: "허가된 상황을 말하는 것이므로 '수 있다'가 맞고, '찍을 줄 알아요'는 촬영 기술을 아는지를 뜻해 의미가 달라져요."
+  },
+  {
+    prompt: "알바가 있어서 내일 도서관에 ______.",
+    options: ["갈 수 없어요", "갈 줄 몰라요"],
+    correct: 0,
+    hint: "도서관에 가는 방법을 모르는 게 아니에요.",
+    explain: "일정이 겹치는 상황적 조건 때문에 불가능하므로 '수 있다/없다'가 맞아요. '갈 줄 몰라요'는 방법을 모른다는 뜻이 되어 문맥과 안 맞아요."
+  },
+  {
+    prompt: "그 사람이 그렇게 화를 낼 ______.",
+    options: ["줄 몰랐어요", "수 없었어요"],
+    correct: 0,
+    hint: "'수'는 혼자 쓰이지 못하고, '없었어요'를 붙이면 전혀 다른 뜻이 돼요.",
+    explain: "'수 없었어요'는 '화를 낼 능력이나 여건이 안 됐다'는 전혀 다른 뜻이 돼요. 예상하지 못했다는 뜻은 '줄 알다/모르다'만 나타낼 수 있어요."
+  },
+  {
+    prompt: "이 도서관 안에서는 담배를 ______.",
+    options: ["피울 수 없어요", "피울 줄 몰라요"],
+    correct: 0,
+    hint: "능력이나 기술의 문제가 아니에요.",
+    explain: "규칙·금지 여부는 '수 있다/없다'로 표현해요. '피울 줄 몰라요'는 담배 피우는 방법을 모른다는 뜻이 되어 문맥과 전혀 안 맞아요."
+  },
+  {
+    prompt: "운전면허가 있어요. 운전을 ______.",
+    options: ["할 수 있어요", "할 줄 알아요", "할 수 있어요 / 할 줄 알아요"],
+    correct: 2,
+    hint: "면허는 배운 자격이면서 동시에 일반적인 능력이기도 해요.",
+    explain: "면허가 있다는 건 배운 방법(기술)이 있다는 뜻이면서 동시에 일반적으로 운전이 가능하다는 뜻도 되므로, 두 표현이 겹치는 학습된 기술 영역에 정확히 해당해요."
+  },
+  {
+    prompt: "어릴 때 수영을 배웠어요. 수영을 ______.",
+    options: ["할 수 있어요", "할 줄 알아요", "할 수 있어요 / 할 줄 알아요"],
+    correct: 2,
+    hint: "배운 기술과 일반적 가능성이 동시에 해당돼요.",
+    explain: "수영을 배운 경험 자체를 말하는 문맥이라 학습된 기술 영역(교집합)에 들어가요. 둘 다 자연스럽게 쓸 수 있어요."
+  },
+  {
+    prompt: "요즘 피아노를 배우고 있어요. 피아노를 ______.",
+    options: ["칠 수 있어요", "칠 줄 알아요", "칠 수 있어요 / 칠 줄 알아요"],
+    correct: 2,
+    hint: "배우고 있다는 것도 기술을 익히는 과정을 말해요.",
+    explain: "'배우고 있다'는 표현 자체가 기술 습득 과정을 직접 가리키므로, 다른 학습된 기술 예시들과 똑같이 교집합 영역에 해당해요. 두 표현 모두 자연스럽게 쓸 수 있어요."
+  },
+  {
+    prompt: "운전을 배운 적이 없어서 운전을 ______.",
+    options: ["할 수 없어요", "할 줄 몰라요", "할 수 없어요 / 할 줄 몰라요"],
+    correct: 2,
+    hint: "이유 자체가 '배운 적이 없다'는 기술 부재를 직접 말해요.",
+    explain: "배운 적이 없다는 이유가 학습된 기술의 부재를 직접 가리키므로 교집합 영역이에요. 둘 다 자연스럽게 쓸 수 있어요."
+  }
+];
+
+let current = 0;
+let score = 0;
+let answered = false;
+
+function renderDots(){
+  const dots = document.getElementById('dots');
+  dots.innerHTML = '';
+  questions.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i < current ? ' done' : i === current ? ' current' : '');
+    dots.appendChild(d);
+  });
+}
+
+function renderQuestion(){
+  answered = false;
+  const q = questions[current];
+  document.getElementById('qnum').textContent = (current+1) + ' / ' + questions.length;
+  document.getElementById('prompt').textContent = q.prompt;
+  document.getElementById('hintText').classList.remove('show');
+  document.getElementById('hintText').textContent = q.hint;
+  document.getElementById('hintBtn').textContent = '힌트 보기';
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('nextBtn').classList.remove('show');
+  document.getElementById('nextBtn').textContent = current === questions.length-1 ? '결과 보기' : '다음 문제';
+
+  const optWrap = document.getElementById('options');
+  optWrap.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const b = document.createElement('button');
+    b.className = 'opt';
+    b.textContent = opt;
+    b.onclick = () => select(i);
+    optWrap.appendChild(b);
+  });
+  renderDots();
+}
+
+function toggleHint(){
+  const h = document.getElementById('hintText');
+  const btn = document.getElementById('hintBtn');
+  h.classList.toggle('show');
+  btn.textContent = h.classList.contains('show') ? '힌트 숨기기' : '힌트 보기';
+}
+
+function select(i){
+  if(answered) return;
+  answered = true;
+  const q = questions[current];
+  const btns = document.querySelectorAll('.opt');
+  btns.forEach((b, idx) => {
+    b.classList.add('disabled');
+    if(idx === q.correct) b.classList.add('correct');
+    else if(idx === i) b.classList.add('wrong');
+    else b.classList.add('dim');
+  });
+
+  const fb = document.getElementById('feedback');
+  if(i === q.correct){
+    score++;
+    fb.className = 'feedback show ok';
+    fb.innerHTML = '<b>맞아요!</b>' + q.explain;
+  } else {
+    fb.className = 'feedback show no';
+    fb.innerHTML = '<b>다시 생각해 보세요.</b>' + q.explain;
+  }
+  document.getElementById('nextBtn').classList.add('show');
+}
+
+function next(){
+  if(current < questions.length - 1){
+    current++;
+    renderQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult(){
+  document.getElementById('quizCard').style.display = 'none';
+  document.getElementById('dots').style.display = 'none';
+  const rc = document.getElementById('resultCard');
+  rc.classList.add('show');
+  document.getElementById('scoreText').innerHTML = score + '<span> / ' + questions.length + '</span>';
+}
+
+function restart(){
+  current = 0; score = 0;
+  document.getElementById('quizCard').style.display = 'block';
+  document.getElementById('dots').style.display = 'flex';
+  document.getElementById('resultCard').classList.remove('show');
+  renderQuestion();
+}
+
+renderQuestion();
+</script>
+</body>
+</html>
